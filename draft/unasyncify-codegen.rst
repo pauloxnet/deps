@@ -20,9 +20,9 @@ Abstract
 
 This DEP proposes to add code generation tooling (Unasyncify codegen) to Django as a way to implement DEP 0009 without duplicating code.
 
-Unasyncify codegen takes an async function and transforms it into a synchronous variant. This involves "eraising" ``await`` s, making sure to call sync versions of async functions found in the function body, and other syntactic-level transformations as needed.
+Unasyncify codegen takes an async function and transforms it into a synchronous variant. This involves "eraising" ``await`` occurrences, making sure to call sync versions of async functions found in the function body, and other syntactic-level transformations as needed.
 
-The code generation lets us have one canonical implmentation (the async one) for APIs using this code generation, while still being able to easily add code that is only used in the async or sync variants.
+The code generation lets us have one canonical implementation (the async one) for APIs using this code generation, while still being able to easily add code that is only used in the async or sync variants.
 
 The codegen would be run by Django developers and checked into the codebase. This would allow for complete visibility into what the tool does, and ensure that users of Django are not presented with obfuscated code when looking at internal calls.
 
@@ -62,7 +62,6 @@ A function annotated with ``@generate_unasynced()`` is marked to have the unasyn
 * Its name must follow Django's "async variant" naming convention, either beginning with ``a`` or, in the case of internal functions, ``_a``
 
 Unasync codegen will add a new function to the same block, above the existing function implementation.
-
 
 The generated function has the following changes:
 
@@ -118,7 +117,6 @@ The generated function has the following changes:
 * ``async with`` blocks are replaced with ``with`` blocks
 * If, inside the ``generate_unasynced`` decorator, we have specified ``async_unsafe=True``, then the generated function will have ``@async_unsafe`` applied to it as well.
 
-
 What follows is a concrete example of what the transformation generates.
 
 Given the following::
@@ -158,7 +156,6 @@ The following is added *above the ``aconnect``* definition::
 
         self.run_on_commit = []
 
-
 By running the ``scripts/run_codegen.sh`` script, Django's source tree is scanned for functions with the ``generate_unasync`` decorator, and will rewrite files with that decorator applied according to the above rules.
 
 Developer Flow Changes
@@ -171,8 +168,6 @@ Because of this, developers will need to make sure they make changes to the asyn
 An added step in CI will make sure that unasyncify codegen is applied. This also will help capture whether manual changes to the synchronous versions are unintentionally committed.
 
 Developers working on annotated code will need to run ``scripts/run_codegen.sh`` and commit changes from this codegen. This has the added benefit of reviewing the result of the codegen, and supervising that the transformation matches what we want.
-
-
 
 Rationale
 =========
@@ -201,7 +196,6 @@ Reference Implementation
 
 This code generation uses `libCST <https://libcst.readthedocs.io/en/latest/index.html>`_, which allows for code transformations that in particular preserve comments and whitespace layouts.
 This implementation was done in a couple of hours, almost entirely thanks to the existence of ``libCST``. The simplicity of the implementation should be an indicator of the feasibility.
-
 
 .. rubric:: Footnotes
 .. [#color-problem] shortly: I can call sync functions from async functions but not async functions from sync ones. Idea originating from `This blog post <https://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/>`_.
